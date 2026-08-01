@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "weatherlink-dashboard"
-version = "0.3.1"
+version = "0.4.0"
 description = "A modern desktop dashboard for Davis WeatherLink stations"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -20,6 +20,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<9", "ruff>=0.5,<1"]
+packaging = ["pyinstaller>=6.11,<7"]
 
 [project.scripts]
 weatherlink-dashboard = "weatherlink_dashboard.app:main"

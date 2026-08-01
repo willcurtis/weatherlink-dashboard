@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -23,8 +24,10 @@ class Settings:
     units: str = "metric"
 
     @classmethod
-    def load(cls, env_file: str | Path = ".env") -> Settings:
-        load_dotenv(Path(env_file), override=False)
+    def load(cls, env_file: str | Path | None = None) -> Settings:
+        config_file = Path(env_file) if env_file is not None else find_config_file()
+        if config_file is not None:
+            load_dotenv(config_file, override=False)
         api_key = os.getenv("WEATHERLINK_API_KEY", "").strip()
         api_secret = os.getenv("WEATHERLINK_API_SECRET", "").strip()
         if not api_key or api_key == "your_api_key":
@@ -53,3 +56,47 @@ class Settings:
             history_hours=history,
             units=units,
         )
+
+
+def user_config_path() -> Path:
+    """Return a stable, writable configuration path for the current platform."""
+    if sys.platform == "darwin":
+        base = Path.home() / "Library" / "Application Support"
+        return base / "WeatherLink Dashboard" / ".env"
+    if sys.platform == "win32":
+        base = Path(os.getenv("APPDATA", Path.home() / "AppData" / "Roaming"))
+        return base / "WeatherLink Dashboard" / ".env"
+    base = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config"))
+    return base / "weatherlink-dashboard" / ".env"
+
+
+def find_config_file() -> Path | None:
+    """Prefer an explicit/local file, then the platform application-data file."""
+    explicit = os.getenv("WEATHERLINK_CONFIG_FILE", "").strip()
+    candidates = [Path(explicit).expanduser()] if explicit else []
+    candidates.extend((Path.cwd() / ".env", user_config_path()))
+    return next((candidate for candidate in candidates if candidate.is_file()), None)
+
+
+def save_user_config(api_key: str, api_secret: str, station_id: str = "") -> Path:
+    """Save credentials outside the application bundle with owner-only permissions."""
+    values = (api_key.strip(), api_secret.strip(), station_id.strip())
+    if any("\n" in value or "\r" in value for value in values):
+        raise ValueError("Configuration values cannot contain line breaks.")
+    api_key, api_secret, station_id = values
+    path = user_config_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    content = (
+        f"WEATHERLINK_API_KEY={api_key}\n"
+        f"WEATHERLINK_API_SECRET={api_secret}\n"
+        f"WEATHERLINK_STATION_ID={station_id}\n"
+        "WEATHERLINK_REFRESH_SECONDS=60\n"
+        "WEATHERLINK_HISTORY_HOURS=24\n"
+        "WEATHERLINK_UNITS=metric\n"
+    )
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(content, encoding="utf-8")
+    temporary.chmod(0o600)
+    temporary.replace(path)
+    path.chmod(0o600)
+    return path

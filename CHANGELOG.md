@@ -4,6 +4,19 @@ All notable changes to this project will be documented here. The format follows 
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-01
+
+### Added
+
+- Finder-launchable macOS application and drag-to-Applications DMG build.
+- Branded first-launch credential setup stored outside the application bundle.
+- Automated Apple Silicon and Intel release packages through GitHub Actions.
+- Optional Developer ID signing and Apple notarization using repository secrets.
+
+### Changed
+
+- Configuration discovery now supports a platform application-data file and explicit path override.
+
 ## [0.3.1] - 2026-08-01
 
 ### Fixed
@@ -59,7 +72,8 @@ All notable changes to this project will be documented here. The format follows 
 - Environment-file configuration with no embedded credentials.
 - Automated tests for configuration, normalization, and unit conversion.
 
-[Unreleased]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.2.1...v0.2.2

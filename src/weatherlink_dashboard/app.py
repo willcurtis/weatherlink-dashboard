@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import argparse
 import sys
-import tkinter as tk
 import webbrowser
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from importlib.resources import files
-from tkinter import messagebox
 
 import customtkinter as ctk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -19,7 +17,7 @@ from PIL import Image, ImageTk
 
 from . import __version__
 from .client import WeatherLinkClient, WeatherLinkError
-from .config import ConfigurationError, Settings
+from .config import ConfigurationError, Settings, save_user_config, user_config_path
 from .models import Conditions, history_series, parse_current
 from .theme import (
     BACKGROUND,
@@ -50,6 +48,92 @@ def display(value: float | None, suffix: str, decimals: int = 1) -> str:
 
 def open_repository() -> bool:
     return webbrowser.open(REPOSITORY_URL)
+
+
+class SetupDialog(ctk.CTk):
+    """First-launch configuration for Finder-installed application bundles."""
+
+    def __init__(self, error: str):
+        super().__init__()
+        self.saved = False
+        self.title("Set up WeatherLink Dashboard")
+        self.geometry("560x500")
+        self.resizable(False, False)
+        self.configure(fg_color=BACKGROUND)
+        self.protocol("WM_DELETE_WINDOW", self._close)
+        self.after(100, self._present)
+
+        panel = ctk.CTkFrame(
+            self, fg_color=SURFACE, corner_radius=18, border_width=1, border_color=BORDER
+        )
+        panel.pack(fill="both", expand=True, padx=24, pady=24)
+        ctk.CTkLabel(
+            panel, text="Connect your weather station", font=("Arial", 24, "bold"), text_color=TEXT
+        ).pack(anchor="w", padx=24, pady=(24, 4))
+        ctk.CTkLabel(
+            panel,
+            text="Enter your WeatherLink v2 credentials. They are saved in your user application-data folder, never inside the app.",
+            wraplength=460,
+            justify="left",
+            text_color=MUTED,
+        ).pack(anchor="w", padx=24, pady=(0, 14))
+
+        self.api_key = self._field(panel, "API key")
+        self.api_secret = self._field(panel, "API secret", show="•")
+        self.station_id = self._field(panel, "Station ID (optional)")
+        self.error_label = ctk.CTkLabel(
+            panel, text=error, wraplength=460, justify="left", text_color=DANGER
+        )
+        self.error_label.pack(anchor="w", padx=24, pady=(12, 4))
+        ctk.CTkButton(
+            panel,
+            text="Save and open dashboard",
+            height=40,
+            fg_color=CYAN,
+            hover_color=CYAN_HOVER,
+            text_color=BACKGROUND,
+            font=("Arial", 12, "bold"),
+            command=self._save,
+        ).pack(fill="x", padx=24, pady=(8, 24))
+
+    def _present(self) -> None:
+        self.deiconify()
+        self.lift()
+        self.focus_force()
+
+    def _field(self, master, label: str, show: str | None = None) -> ctk.CTkEntry:
+        ctk.CTkLabel(master, text=label, text_color=MUTED, font=("Arial", 11, "bold")).pack(
+            anchor="w", padx=24, pady=(8, 3)
+        )
+        entry = ctk.CTkEntry(
+            master,
+            height=38,
+            show=show or "",
+            fg_color=CARD,
+            border_color=BORDER,
+            text_color=TEXT,
+        )
+        entry.pack(fill="x", padx=24)
+        return entry
+
+    def _save(self) -> None:
+        key = self.api_key.get().strip()
+        secret = self.api_secret.get().strip()
+        if not key or not secret:
+            self.error_label.configure(text="API key and API secret are required.")
+            return
+        try:
+            save_user_config(key, secret, self.station_id.get())
+        except (OSError, ValueError) as exc:
+            self.error_label.configure(text=f"Could not save configuration: {exc}")
+            return
+        self.saved = True
+        self.quit()
+        self.destroy()
+
+    def _close(self) -> None:
+        self.quit()
+        self.destroy()
 
 
 class Dashboard(ctk.CTk):
@@ -331,14 +415,13 @@ def main() -> None:
     try:
         settings = Settings.load()
     except ConfigurationError as exc:
-        root = tk.Tk()
-        root.withdraw()
-        messagebox.showerror(
-            "WeatherLink configuration",
-            f"{exc}\n\nCopy .env.example to .env and add your WeatherLink credentials.",
+        dialog = SetupDialog(
+            f"{exc}\nConfiguration file: {user_config_path()}",
         )
-        root.destroy()
-        sys.exit(2)
+        dialog.mainloop()
+        if not dialog.saved:
+            sys.exit(2)
+        settings = Settings.load(user_config_path())
     Dashboard(settings, kiosk=args.kiosk).mainloop()
 
 

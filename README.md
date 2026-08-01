@@ -89,6 +89,45 @@ rm ~/.config/autostart/weatherlink-dashboard.desktop
 systemctl --user daemon-reload
 ```
 
+## macOS application
+
+Each GitHub release can provide native macOS disk images for Apple Silicon and Intel. Download the DMG for your Mac, open it, and drag **WeatherLink Dashboard** into **Applications**. The application includes Python and all required libraries.
+
+On first launch, a branded setup window asks for the WeatherLink v2 API key, API secret, and optional station ID. Credentials are stored outside the application bundle at:
+
+```text
+~/Library/Application Support/WeatherLink Dashboard/.env
+```
+
+The file is restricted to the current user. Existing environment variables and repository-local `.env` files continue to take precedence.
+
+### Building a DMG locally
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install '.[dev,packaging]'
+./scripts/build_macos.sh
+```
+
+The output is written to `dist/WeatherLink-Dashboard-<version>-macOS-<architecture>.dmg`. Without an Apple identity the local build is ad-hoc signed and macOS may display a Gatekeeper warning on another computer.
+
+### Signed and notarized releases
+
+The release workflow builds separate `arm64` and `x86_64` packages. To enable public Developer ID signing and Apple notarization, configure these GitHub Actions secrets:
+
+| Secret | Purpose |
+| --- | --- |
+| `MACOS_CERTIFICATE_BASE64` | Base64-encoded Developer ID Application `.p12` |
+| `MACOS_CERTIFICATE_PASSWORD` | Password protecting the `.p12` |
+| `MACOS_KEYCHAIN_PASSWORD` | Temporary CI keychain password |
+| `MACOS_SIGN_IDENTITY` | Full Developer ID Application identity |
+| `APPLE_ID` | Apple ID used by `notarytool` |
+| `APPLE_TEAM_ID` | Apple Developer Team ID |
+| `APPLE_APP_PASSWORD` | App-specific password for notarization |
+
+When those secrets are absent the workflow still produces testable ad-hoc-signed DMGs; it never stores signing or WeatherLink credentials in the repository.
+
 ## Configuration
 
 | Variable | Required | Default | Description |
@@ -99,8 +138,9 @@ systemctl --user daemon-reload
 | `WEATHERLINK_REFRESH_SECONDS` | No | `60` | Refresh cadence; minimum 30 seconds |
 | `WEATHERLINK_HISTORY_HOURS` | No | `24` | History window from 1–24 hours |
 | `WEATHERLINK_UNITS` | No | `metric` | `metric` or `imperial` |
+| `WEATHERLINK_CONFIG_FILE` | No | Platform default | Explicit path to a credential file |
 
-The `.env` file is excluded by `.gitignore`. Do not commit it, paste credentials into source code, or pass the API secret in a URL. If a secret is exposed, regenerate it from WeatherLink immediately.
+The `.env` file is excluded by `.gitignore`. Finder-installed builds use the platform application-data path shown above. Do not commit it, paste credentials into source code, or pass the API secret in a URL. If a secret is exposed, regenerate it from WeatherLink immediately.
 
 ## WeatherLink API notes
 
