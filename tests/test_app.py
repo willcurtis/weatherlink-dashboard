@@ -1,4 +1,4 @@
-from weatherlink_dashboard.app import Dashboard, build_parser
+from weatherlink_dashboard.app import REPOSITORY_URL, Dashboard, build_parser, open_repository
 
 
 def test_kiosk_is_opt_in():
@@ -30,3 +30,13 @@ def test_running_timer_clears_id_before_refresh():
     dashboard._run_scheduled_refresh()
 
     assert states == [None]
+
+
+def test_repository_link_opens_project_page(monkeypatch):
+    opened = []
+    monkeypatch.setattr(
+        "weatherlink_dashboard.app.webbrowser.open", lambda url: opened.append(url) or True
+    )
+
+    assert open_repository() is True
+    assert opened == [REPOSITORY_URL]

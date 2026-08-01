@@ -14,6 +14,7 @@ A modern, cross-platform Python desktop dashboard for Davis Instruments weather 
 - Background network requests so the interface remains responsive
 - Friendly handling when a WeatherLink plan does not include historical data
 - Credentials loaded only from a local `.env` file, which Git ignores
+- Installed version and a clickable The Tech Shed repository link in the dashboard footer
 
 ## Setup
 
