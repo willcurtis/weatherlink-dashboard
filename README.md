@@ -6,6 +6,8 @@ Branded for **The Tech Shed** using its original cyan, teal, and deep-navy visua
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB) ![License](https://img.shields.io/badge/license-MIT-22C55E)
 
+![The Tech Shed WeatherLink Dashboard showing live weather cards, gauges, a wind compass, and a 24-hour temperature chart](docs/images/weatherlink-dashboard.png)
+
 ## Features
 
 - Live temperature, humidity, rainfall, solar radiation, and UV readings
