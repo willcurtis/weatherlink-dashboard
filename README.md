@@ -48,6 +48,40 @@ A modern, cross-platform Python desktop dashboard for Davis Instruments weather 
    # or: python -m weatherlink_dashboard.app
    ```
 
+## Optional Raspberry Pi kiosk mode
+
+The Raspberry Pi installer always installs the application, but it does **not** configure automatic startup unless you explicitly pass `--enable-kiosk`.
+
+On Raspberry Pi OS with a desktop environment:
+
+```bash
+git clone https://github.com/willcurtis/weatherlink-dashboard.git
+cd weatherlink-dashboard
+
+# Normal installation; no startup service is created or enabled:
+./scripts/install_raspberry_pi.sh
+
+# Opt-in kiosk installation; creates and enables the systemd service:
+./scripts/install_raspberry_pi.sh --enable-kiosk
+```
+
+The script creates `.env` from the safe template if it does not exist. Add your credentials, then start the enabled service without rebooting:
+
+```bash
+sudo systemctl start weatherlink-dashboard.service
+journalctl -u weatherlink-dashboard.service -f
+```
+
+The kiosk starts fullscreen after the graphical desktop and network are available, automatically restarts after a failure, and remains disabled unless the install switch is supplied. Raspberry Pi OS should be configured to log the desktop user in automatically so a graphical display is available. Press `Escape` to leave fullscreen or `F11` to toggle it.
+
+To disable and remove the service later:
+
+```bash
+sudo systemctl disable --now weatherlink-dashboard.service
+sudo rm /etc/systemd/system/weatherlink-dashboard.service
+sudo systemctl daemon-reload
+```
+
 ## Configuration
 
 | Variable | Required | Default | Description |
