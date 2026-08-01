@@ -68,18 +68,19 @@ cd weatherlink-dashboard
 The script creates `.env` from the safe template if it does not exist. Add your credentials, then start the enabled service without rebooting:
 
 ```bash
-sudo systemctl start weatherlink-dashboard.service
-journalctl -u weatherlink-dashboard.service -f
+systemctl --user start weatherlink-dashboard.service
+journalctl --user -u weatherlink-dashboard.service -f
 ```
 
-The kiosk starts fullscreen after the graphical desktop and network are available, automatically restarts after a failure, and remains disabled unless the install switch is supplied. Raspberry Pi OS should be configured to log the desktop user in automatically so a graphical display is available. Press `Escape` to leave fullscreen or `F11` to toggle it.
+The kiosk uses a per-user systemd service started by the graphical desktop session. It inherits the active Wayland or XWayland environment rather than assuming an X11 display, automatically restarts after a failure, and remains disabled unless the install switch is supplied. Raspberry Pi OS should be configured to log the desktop user in automatically so a graphical display is available. Press `Escape` to leave fullscreen or `F11` to toggle it.
 
 To disable and remove the service later:
 
 ```bash
-sudo systemctl disable --now weatherlink-dashboard.service
-sudo rm /etc/systemd/system/weatherlink-dashboard.service
-sudo systemctl daemon-reload
+systemctl --user disable --now weatherlink-dashboard.service
+rm ~/.config/systemd/user/weatherlink-dashboard.service
+rm ~/.config/autostart/weatherlink-dashboard.desktop
+systemctl --user daemon-reload
 ```
 
 ## Configuration

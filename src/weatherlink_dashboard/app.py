@@ -37,6 +37,7 @@ class Dashboard(ctk.CTk):
         self.station_name = "Weather station"
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.loading = False
+        self.refresh_after_id: str | None = None
         self.title("WeatherLink Dashboard")
         self.geometry("1220x820")
         self.minsize(980, 700)
@@ -47,13 +48,27 @@ class Dashboard(ctk.CTk):
             self.bind("<F11>", self._toggle_fullscreen)
             self.bind("<Escape>", self._leave_fullscreen)
         self._build()
-        self.after(200, self.refresh)
+        self._schedule_refresh(200)
 
     def _toggle_fullscreen(self, _event=None) -> None:
         self.attributes("-fullscreen", not bool(self.attributes("-fullscreen")))
 
     def _leave_fullscreen(self, _event=None) -> None:
         self.attributes("-fullscreen", False)
+
+    def _cancel_scheduled_refresh(self) -> None:
+        if self.refresh_after_id is None:
+            return
+        self.after_cancel(self.refresh_after_id)
+        self.refresh_after_id = None
+
+    def _schedule_refresh(self, delay_ms: int) -> None:
+        self._cancel_scheduled_refresh()
+        self.refresh_after_id = self.after(delay_ms, self._run_scheduled_refresh)
+
+    def _run_scheduled_refresh(self) -> None:
+        self.refresh_after_id = None
+        self.refresh()
 
     def _build(self) -> None:
         header = ctk.CTkFrame(self, fg_color="transparent")
@@ -128,6 +143,7 @@ class Dashboard(ctk.CTk):
     def refresh(self) -> None:
         if self.loading:
             return
+        self._cancel_scheduled_refresh()
         self.loading = True
         self.refresh_button.configure(state="disabled")
         self.status.configure(text="Refreshing WeatherLink data…", text_color="#94A3B8")
@@ -159,7 +175,7 @@ class Dashboard(ctk.CTk):
         else:
             self._show_conditions(conditions)
             self._draw_chart()
-        self.after(self.settings.refresh_seconds * 1000, self.refresh)
+        self._schedule_refresh(self.settings.refresh_seconds * 1000)
 
     def _show_conditions(self, c: Conditions) -> None:
         temp_unit = "°C" if self.metric else "°F"
@@ -219,6 +235,7 @@ class Dashboard(ctk.CTk):
         self.chart.draw_idle()
 
     def close(self) -> None:
+        self._cancel_scheduled_refresh()
         self.executor.shutdown(wait=False, cancel_futures=True)
         self.destroy()
 
