@@ -2,6 +2,8 @@
 
 A modern, cross-platform Python desktop dashboard for Davis Instruments weather stations connected to WeatherLink. It presents live observations with gauges, a wind-direction dial, metric cards, and selectable history graphs.
 
+Branded for **The Tech Shed** using its original cyan, teal, and deep-navy visual identity.
+
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB) ![License](https://img.shields.io/badge/license-MIT-22C55E)
 
 ## Features
@@ -15,6 +17,7 @@ A modern, cross-platform Python desktop dashboard for Davis Instruments weather 
 - Friendly handling when a WeatherLink plan does not include historical data
 - Credentials loaded only from a local `.env` file, which Git ignores
 - Installed version and a clickable The Tech Shed repository link in the dashboard footer
+- Packaged The Tech Shed logo, window icon, and cohesive professional brand theme
 
 ## Setup
 
