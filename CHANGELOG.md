@@ -4,6 +4,14 @@ All notable changes to this project will be documented here. The format follows 
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-01
+
+### Changed
+
+- Reworked the dashboard with The Tech Shed logo and brand palette.
+- Added a professional branded header, application icon, bordered data cards, and unified controls.
+- Restyled charts, gauges, compass, live status, and footer for a cohesive visual hierarchy.
+
 ## [0.2.2] - 2026-08-01
 
 ### Fixed
@@ -41,7 +49,8 @@ All notable changes to this project will be documented here. The format follows 
 - Environment-file configuration with no embedded credentials.
 - Automated tests for configuration, normalization, and unit conversion.
 
-[Unreleased]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.1.0...v0.2.0

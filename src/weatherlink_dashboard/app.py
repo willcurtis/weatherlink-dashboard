@@ -8,17 +8,34 @@ import tkinter as tk
 import webbrowser
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
+from importlib.resources import files
 from tkinter import messagebox
 
 import customtkinter as ctk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.dates import DateFormatter
 from matplotlib.figure import Figure
+from PIL import Image, ImageTk
 
 from . import __version__
 from .client import WeatherLinkClient, WeatherLinkError
 from .config import ConfigurationError, Settings
 from .models import Conditions, history_series, parse_current
+from .theme import (
+    BACKGROUND,
+    BORDER,
+    CARD,
+    CYAN,
+    CYAN_HOVER,
+    DANGER,
+    GRID,
+    MUTED,
+    SUBTLE,
+    SURFACE,
+    TEAL,
+    TEAL_HOVER,
+    TEXT,
+)
 from .widgets import Compass, Gauge, MetricCard
 
 ctk.set_appearance_mode("dark")
@@ -46,10 +63,15 @@ class Dashboard(ctk.CTk):
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.loading = False
         self.refresh_after_id: str | None = None
-        self.title("WeatherLink Dashboard")
+        self.title("The Tech Shed | WeatherLink Dashboard")
         self.geometry("1220x820")
         self.minsize(980, 700)
-        self.configure(fg_color="#0B1120")
+        self.configure(fg_color=BACKGROUND)
+        logo_path = files("weatherlink_dashboard").joinpath("assets/tts-round-outline.png")
+        logo_image = Image.open(logo_path)
+        self.logo = ctk.CTkImage(light_image=logo_image, dark_image=logo_image, size=(76, 76))
+        self.window_icon = ImageTk.PhotoImage(logo_image.resize((64, 64)))
+        self.iconphoto(True, self.window_icon)
         self.protocol("WM_DELETE_WINDOW", self.close)
         if kiosk:
             self.attributes("-fullscreen", True)
@@ -79,29 +101,48 @@ class Dashboard(ctk.CTk):
         self.refresh()
 
     def _build(self) -> None:
-        header = ctk.CTkFrame(self, fg_color="transparent")
-        header.pack(fill="x", padx=28, pady=(22, 12))
+        ctk.CTkFrame(self, height=3, corner_radius=0, fg_color=TEAL).pack(fill="x")
+        header = ctk.CTkFrame(
+            self, fg_color=SURFACE, corner_radius=18, border_width=1, border_color=BORDER
+        )
+        header.pack(fill="x", padx=30, pady=(18, 12))
+        ctk.CTkLabel(header, text="", image=self.logo).pack(side="left", padx=(18, 14), pady=10)
         title_box = ctk.CTkFrame(header, fg_color="transparent")
-        title_box.pack(side="left")
+        title_box.pack(side="left", pady=12)
+        ctk.CTkLabel(
+            title_box,
+            text="THE TECH SHED  /  WEATHER INTELLIGENCE",
+            font=("Arial", 10, "bold"),
+            text_color=TEAL,
+        ).pack(anchor="w")
         self.title_label = ctk.CTkLabel(
-            title_box, text=self.station_name, font=("Arial", 28, "bold"), text_color="#F8FAFC"
+            title_box, text=self.station_name, font=("Arial", 27, "bold"), text_color=TEXT
         )
         self.title_label.pack(anchor="w")
-        self.status = ctk.CTkLabel(title_box, text="Connecting…", text_color="#94A3B8")
+        self.status = ctk.CTkLabel(title_box, text="Connecting…", text_color=MUTED)
         self.status.pack(anchor="w")
         self.refresh_button = ctk.CTkButton(
-            header, text="Refresh now", width=120, command=self.refresh
+            header,
+            text="Refresh data",
+            width=126,
+            height=38,
+            corner_radius=12,
+            fg_color=CYAN,
+            hover_color=CYAN_HOVER,
+            text_color=BACKGROUND,
+            font=("Arial", 12, "bold"),
+            command=self.refresh,
         )
-        self.refresh_button.pack(side="right")
+        self.refresh_button.pack(side="right", padx=20)
 
         metrics = ctk.CTkFrame(self, fg_color="transparent")
         metrics.pack(fill="x", padx=24, pady=4)
         for index in range(4):
             metrics.grid_columnconfigure(index, weight=1, uniform="metric")
-        self.temp_card = MetricCard(metrics, "Outside temperature", "#38BDF8")
-        self.hum_card = MetricCard(metrics, "Humidity", "#2DD4BF")
-        self.rain_card = MetricCard(metrics, "Rain today", "#818CF8")
-        self.solar_card = MetricCard(metrics, "Solar / UV", "#FBBF24")
+        self.temp_card = MetricCard(metrics, "Outside temperature", CYAN)
+        self.hum_card = MetricCard(metrics, "Humidity", TEAL)
+        self.rain_card = MetricCard(metrics, "Rain today", CYAN)
+        self.solar_card = MetricCard(metrics, "Solar / UV", TEAL)
         for i, card in enumerate((self.temp_card, self.hum_card, self.rain_card, self.solar_card)):
             card.grid(row=0, column=i, padx=6, pady=6, sticky="nsew")
 
@@ -112,7 +153,7 @@ class Dashboard(ctk.CTk):
         wind_unit = "km/h" if self.metric else "mph"
         pressure_unit = "hPa" if self.metric else "inHg"
         self.wind_gauge = Gauge(
-            visuals, "Wind speed", 0, 100 if self.metric else 60, wind_unit, "#38BDF8"
+            visuals, "Wind speed", 0, 100 if self.metric else 60, wind_unit, CYAN
         )
         self.pressure_gauge = Gauge(
             visuals,
@@ -120,29 +161,36 @@ class Dashboard(ctk.CTk):
             950 if self.metric else 28,
             1050 if self.metric else 31,
             pressure_unit,
-            "#A78BFA",
+            TEAL,
         )
         self.compass = Compass(visuals)
         for i, widget in enumerate((self.wind_gauge, self.pressure_gauge, self.compass)):
             widget.grid(row=0, column=i, padx=6, pady=6, sticky="nsew")
 
-        chart_frame = ctk.CTkFrame(self, corner_radius=16, fg_color="#172033")
+        chart_frame = ctk.CTkFrame(
+            self, corner_radius=18, fg_color=CARD, border_width=1, border_color=BORDER
+        )
         chart_header = ctk.CTkFrame(chart_frame, fg_color="transparent")
         chart_header.pack(fill="x", padx=16, pady=(12, 0))
         ctk.CTkLabel(
-            chart_header, text="24-HOUR HISTORY", text_color="#94A3B8", font=("Arial", 11, "bold")
+            chart_header, text="24-HOUR HISTORY", text_color=MUTED, font=("Arial", 11, "bold")
         ).pack(side="left")
         self.chart_choice = ctk.CTkSegmentedButton(
             chart_header,
             values=["Temperature", "Humidity", "Pressure", "Wind"],
+            selected_color=TEAL,
+            selected_hover_color=TEAL_HOVER,
+            unselected_color=SURFACE,
+            unselected_hover_color=BORDER,
+            text_color=TEXT,
             command=lambda _: self._draw_chart(),
         )
         self.chart_choice.set("Temperature")
         self.chart_choice.pack(side="right")
-        self.figure = Figure(figsize=(8, 3), dpi=100, facecolor="#172033")
+        self.figure = Figure(figsize=(8, 3), dpi=100, facecolor=CARD)
         self.axes = self.figure.add_subplot(111)
         self.chart = FigureCanvasTkAgg(self.figure, master=chart_frame)
-        self.chart.get_tk_widget().configure(bg="#172033", highlightthickness=0)
+        self.chart.get_tk_widget().configure(bg=CARD, highlightthickness=0)
         self.chart.get_tk_widget().pack(fill="both", expand=True, padx=12, pady=8)
         self.series: dict[str, list[tuple[int, float]]] = {}
         self._draw_chart()
@@ -154,13 +202,13 @@ class Dashboard(ctk.CTk):
         ctk.CTkLabel(
             footer,
             text=f"WeatherLink Dashboard v{__version__}",
-            text_color="#64748B",
+            text_color=SUBTLE,
             font=("Arial", 10),
         ).pack(side="left")
         copyright_label = ctk.CTkLabel(
             footer,
             text="© 2026 The Tech Shed",
-            text_color="#38BDF8",
+            text_color=CYAN,
             font=("Arial", 10, "underline"),
             cursor="hand2",
         )
@@ -174,7 +222,7 @@ class Dashboard(ctk.CTk):
         self._cancel_scheduled_refresh()
         self.loading = True
         self.refresh_button.configure(state="disabled")
-        self.status.configure(text="Refreshing WeatherLink data…", text_color="#94A3B8")
+        self.status.configure(text="Refreshing WeatherLink data…", text_color=MUTED)
         future = self.executor.submit(self._fetch)
         future.add_done_callback(lambda f: self.after(0, self._finish_refresh, f))
 
@@ -199,7 +247,7 @@ class Dashboard(ctk.CTk):
         try:
             conditions, self.series = future.result()
         except (WeatherLinkError, ValueError, KeyError, TypeError) as exc:
-            self.status.configure(text=str(exc), text_color="#FB7185")
+            self.status.configure(text=str(exc), text_color=DANGER)
         else:
             self._show_conditions(conditions)
             self._draw_chart()
@@ -209,7 +257,7 @@ class Dashboard(ctk.CTk):
         temp_unit = "°C" if self.metric else "°F"
         rain_unit = "mm" if self.metric else "in"
         self.title_label.configure(text=self.station_name)
-        self.status.configure(text=f"Live • observed {c.observed_at}", text_color="#2DD4BF")
+        self.status.configure(text=f"LIVE  •  Observed {c.observed_at}", text_color=TEAL)
         self.temp_card.set(
             display(c.temperature(self.metric), temp_unit),
             f"Feels like {display(c.feels_like(self.metric), temp_unit)}",
@@ -237,17 +285,17 @@ class Dashboard(ctk.CTk):
         }
         ax = self.axes
         ax.clear()
-        ax.set_facecolor("#172033")
-        ax.tick_params(colors="#94A3B8", labelsize=8)
+        ax.set_facecolor(CARD)
+        ax.tick_params(colors=MUTED, labelsize=8)
         for spine in ax.spines.values():
             spine.set_visible(False)
-        ax.grid(axis="y", color="#334155", linewidth=0.6, alpha=0.65)
-        ax.set_ylabel(units[key], color="#94A3B8", fontsize=9)
+        ax.grid(axis="y", color=GRID, linewidth=0.7, alpha=0.75)
+        ax.set_ylabel(units[key], color=MUTED, fontsize=9)
         if points:
             dates = [datetime.fromtimestamp(ts, tz=timezone.utc).astimezone() for ts, _ in points]
             values = [value for _, value in points]
-            ax.plot(dates, values, color="#38BDF8", linewidth=2.2)
-            ax.fill_between(dates, values, min(values), color="#38BDF8", alpha=0.09)
+            ax.plot(dates, values, color=CYAN, linewidth=2.3)
+            ax.fill_between(dates, values, min(values), color=TEAL, alpha=0.10)
             ax.xaxis.set_major_formatter(DateFormatter("%H:%M"))
         else:
             ax.text(
@@ -256,7 +304,7 @@ class Dashboard(ctk.CTk):
                 "Historical data is unavailable for this station or plan",
                 ha="center",
                 va="center",
-                color="#64748B",
+                color=SUBTLE,
                 transform=ax.transAxes,
             )
         self.figure.tight_layout(pad=1.2)
