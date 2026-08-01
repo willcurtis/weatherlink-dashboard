@@ -4,6 +4,10 @@ All notable changes to this project will be documented here. The format follows 
 
 ## [Unreleased]
 
+### Documentation
+
+- Added a screenshot of the branded dashboard to the README.
+
 ## [0.3.0] - 2026-08-01
 
 ### Changed
