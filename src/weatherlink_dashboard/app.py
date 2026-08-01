@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import sys
 import tkinter as tk
 from concurrent.futures import ThreadPoolExecutor
@@ -27,7 +28,7 @@ def display(value: float | None, suffix: str, decimals: int = 1) -> str:
 
 
 class Dashboard(ctk.CTk):
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, kiosk: bool = False):
         super().__init__()
         self.settings = settings
         self.metric = settings.units == "metric"
@@ -41,8 +42,18 @@ class Dashboard(ctk.CTk):
         self.minsize(980, 700)
         self.configure(fg_color="#0B1120")
         self.protocol("WM_DELETE_WINDOW", self.close)
+        if kiosk:
+            self.attributes("-fullscreen", True)
+            self.bind("<F11>", self._toggle_fullscreen)
+            self.bind("<Escape>", self._leave_fullscreen)
         self._build()
         self.after(200, self.refresh)
+
+    def _toggle_fullscreen(self, _event=None) -> None:
+        self.attributes("-fullscreen", not bool(self.attributes("-fullscreen")))
+
+    def _leave_fullscreen(self, _event=None) -> None:
+        self.attributes("-fullscreen", False)
 
     def _build(self) -> None:
         header = ctk.CTkFrame(self, fg_color="transparent")
@@ -212,7 +223,18 @@ class Dashboard(ctk.CTk):
         self.destroy()
 
 
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Davis WeatherLink desktop dashboard")
+    parser.add_argument(
+        "--kiosk",
+        action="store_true",
+        help="start fullscreen (press Escape to leave fullscreen and F11 to toggle it)",
+    )
+    return parser
+
+
 def main() -> None:
+    args = build_parser().parse_args()
     try:
         settings = Settings.load()
     except ConfigurationError as exc:
@@ -224,7 +246,7 @@ def main() -> None:
         )
         root.destroy()
         sys.exit(2)
-    Dashboard(settings).mainloop()
+    Dashboard(settings, kiosk=args.kiosk).mainloop()
 
 
 if __name__ == "__main__":
