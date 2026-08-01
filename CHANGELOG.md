@@ -12,6 +12,11 @@ All notable changes to this project will be documented here. The format follows 
 - Fullscreen `--kiosk` launch mode with Escape and F11 controls.
 - Automatic service restart after application failures.
 
+### Fixed
+
+- Kiosk startup now inherits Wayland or XWayland from the logged-in desktop session.
+- Manual refresh no longer creates additional recurring API polling timers.
+
 ## [0.1.0] - 2026-08-01
 
 ### Added

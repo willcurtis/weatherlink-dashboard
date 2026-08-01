@@ -29,14 +29,16 @@ fi
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INSTALL_USER="$(id -un)"
-INSTALL_HOME="$(getent passwd "${INSTALL_USER}" | cut -d: -f6)"
 VENV_DIR="${PROJECT_DIR}/.venv"
 ENV_FILE="${PROJECT_DIR}/.env"
 SERVICE_NAME="weatherlink-dashboard.service"
-SERVICE_PATH="/etc/systemd/system/${SERVICE_NAME}"
+USER_SYSTEMD_DIR="${HOME}/.config/systemd/user"
+SERVICE_PATH="${USER_SYSTEMD_DIR}/${SERVICE_NAME}"
+AUTOSTART_DIR="${HOME}/.config/autostart"
+AUTOSTART_PATH="${AUTOSTART_DIR}/weatherlink-dashboard.desktop"
 
 if [[ "${INSTALL_USER}" == "root" ]]; then
-    printf 'Run this script as the desktop user, not as root. It will request sudo only when needed.\n' >&2
+    printf 'Run this script as the desktop user, not as root.\n' >&2
     exit 1
 fi
 
@@ -69,31 +71,37 @@ fi
 
 SERVICE_CONTENT="[Unit]
 Description=WeatherLink fullscreen dashboard
-After=graphical.target network-online.target
-Wants=network-online.target
+After=graphical-session.target
+PartOf=graphical-session.target
 
 [Service]
 Type=simple
-User=${INSTALL_USER}
 WorkingDirectory=${PROJECT_DIR}
-Environment=DISPLAY=:0
-Environment=XAUTHORITY=${INSTALL_HOME}/.Xauthority
-ExecStartPre=/bin/sh -c 'until [ -S /tmp/.X11-unix/X0 ]; do sleep 2; done'
 ExecStart=${VENV_DIR}/bin/weatherlink-dashboard --kiosk
 Restart=on-failure
 RestartSec=10
 
 [Install]
-WantedBy=graphical.target"
+WantedBy=graphical-session.target"
 
-printf '%s\n' "${SERVICE_CONTENT}" | sudo tee "${SERVICE_PATH}" >/dev/null
-sudo chmod 644 "${SERVICE_PATH}"
-sudo systemctl daemon-reload
-sudo systemctl enable "${SERVICE_NAME}"
+AUTOSTART_CONTENT="[Desktop Entry]
+Type=Application
+Name=WeatherLink Dashboard
+Comment=Start the WeatherLink kiosk service after desktop login
+Exec=systemctl --user start ${SERVICE_NAME}
+X-GNOME-Autostart-enabled=true"
+
+mkdir -p "${USER_SYSTEMD_DIR}" "${AUTOSTART_DIR}"
+printf '%s\n' "${SERVICE_CONTENT}" > "${SERVICE_PATH}"
+printf '%s\n' "${AUTOSTART_CONTENT}" > "${AUTOSTART_PATH}"
+chmod 644 "${SERVICE_PATH}" "${AUTOSTART_PATH}"
+systemctl --user daemon-reload
+systemctl --user enable "${SERVICE_NAME}"
 
 printf '%s\n' \
     "Kiosk startup is enabled." \
+    "The user service will inherit Wayland or XWayland settings from the desktop session." \
     "After adding credentials to ${ENV_FILE}, start it with:" \
-    "  sudo systemctl start ${SERVICE_NAME}" \
+    "  systemctl --user start ${SERVICE_NAME}" \
     "View logs with:" \
-    "  journalctl -u ${SERVICE_NAME} -f"
+    "  journalctl --user -u ${SERVICE_NAME} -f"
