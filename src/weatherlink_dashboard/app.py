@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 import tkinter as tk
+import webbrowser
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from tkinter import messagebox
@@ -14,6 +15,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.dates import DateFormatter
 from matplotlib.figure import Figure
 
+from . import __version__
 from .client import WeatherLinkClient, WeatherLinkError
 from .config import ConfigurationError, Settings
 from .models import Conditions, history_series, parse_current
@@ -22,9 +24,15 @@ from .widgets import Compass, Gauge, MetricCard
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
+REPOSITORY_URL = "https://github.com/willcurtis/weatherlink-dashboard"
+
 
 def display(value: float | None, suffix: str, decimals: int = 1) -> str:
     return "--" if value is None else f"{value:.{decimals}f} {suffix}"
+
+
+def open_repository() -> bool:
+    return webbrowser.open(REPOSITORY_URL)
 
 
 class Dashboard(ctk.CTk):
@@ -139,6 +147,24 @@ class Dashboard(ctk.CTk):
         self.chart.get_tk_widget().pack(fill="both", expand=True, padx=12, pady=8)
         self.series: dict[str, list[tuple[int, float]]] = {}
         self._draw_chart()
+
+        footer = ctk.CTkFrame(self, fg_color="transparent")
+        footer.pack(fill="x", padx=30, pady=(0, 12))
+        ctk.CTkLabel(
+            footer,
+            text=f"WeatherLink Dashboard v{__version__}",
+            text_color="#64748B",
+            font=("Arial", 10),
+        ).pack(side="left")
+        copyright_label = ctk.CTkLabel(
+            footer,
+            text="© 2026 The Tech Shed",
+            text_color="#38BDF8",
+            font=("Arial", 10, "underline"),
+            cursor="hand2",
+        )
+        copyright_label.pack(side="right")
+        copyright_label.bind("<Button-1>", lambda _event: open_repository())
 
     def refresh(self) -> None:
         if self.loading:

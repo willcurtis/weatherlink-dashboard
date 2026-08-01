@@ -4,6 +4,13 @@ All notable changes to this project will be documented here. The format follows 
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-08-01
+
+### Added
+
+- Dashboard footer showing the installed application version.
+- Clickable `© 2026 The Tech Shed` link to the GitHub repository.
+
 ## [0.2.0] - 2026-08-01
 
 ### Added
@@ -28,6 +35,7 @@ All notable changes to this project will be documented here. The format follows 
 - Environment-file configuration with no embedded credentials.
 - Automated tests for configuration, normalization, and unit conversion.
 
-[Unreleased]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/willcurtis/weatherlink-dashboard/releases/tag/v0.1.0
