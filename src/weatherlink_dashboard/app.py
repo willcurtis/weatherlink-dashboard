@@ -127,7 +127,6 @@ class Dashboard(ctk.CTk):
             widget.grid(row=0, column=i, padx=6, pady=6, sticky="nsew")
 
         chart_frame = ctk.CTkFrame(self, corner_radius=16, fg_color="#172033")
-        chart_frame.pack(fill="both", expand=True, padx=30, pady=(10, 24))
         chart_header = ctk.CTkFrame(chart_frame, fg_color="transparent")
         chart_header.pack(fill="x", padx=16, pady=(12, 0))
         ctk.CTkLabel(
@@ -149,7 +148,9 @@ class Dashboard(ctk.CTk):
         self._draw_chart()
 
         footer = ctk.CTkFrame(self, fg_color="transparent")
-        footer.pack(fill="x", padx=30, pady=(0, 12))
+        # Reserve the footer before allowing the history chart to consume
+        # the remaining space. This keeps it visible on the first layout pass.
+        footer.pack(side="bottom", fill="x", padx=30, pady=(0, 12))
         ctk.CTkLabel(
             footer,
             text=f"WeatherLink Dashboard v{__version__}",
@@ -165,6 +166,7 @@ class Dashboard(ctk.CTk):
         )
         copyright_label.pack(side="right")
         copyright_label.bind("<Button-1>", lambda _event: open_repository())
+        chart_frame.pack(fill="both", expand=True, padx=30, pady=(10, 12))
 
     def refresh(self) -> None:
         if self.loading:
