@@ -4,6 +4,12 @@ All notable changes to this project will be documented here. The format follows 
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-08-01
+
+### Fixed
+
+- Restored the rounded bottom borders and corners on gauge and compass cards.
+
 ### Documentation
 
 - Added a screenshot of the branded dashboard to the README.
@@ -53,7 +59,8 @@ All notable changes to this project will be documented here. The format follows 
 - Environment-file configuration with no embedded credentials.
 - Automated tests for configuration, normalization, and unit conversion.
 
-[Unreleased]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/willcurtis/weatherlink-dashboard/compare/v0.2.0...v0.2.1

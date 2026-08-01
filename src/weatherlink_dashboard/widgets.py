@@ -52,7 +52,10 @@ class Gauge(ctk.CTkFrame):
             pady=(13, 0)
         )
         self.canvas = tk.Canvas(self, width=190, height=130, bg=CARD, highlightthickness=0)
-        self.canvas.pack(fill="both", expand=True, padx=8)
+        # Native Tk canvases are rectangular and are not clipped to the
+        # CustomTkinter frame radius. Keep them inset so the rounded border
+        # remains visible on every edge.
+        self.canvas.pack(fill="both", expand=True, padx=10, pady=(0, 10))
         self.value: float | None = None
         self.bind("<Configure>", lambda _e: self.draw())
 
@@ -108,7 +111,7 @@ class Compass(ctk.CTkFrame):
             self, text="WIND DIRECTION", text_color=MUTED, font=("Arial", 11, "bold")
         ).pack(pady=(13, 0))
         self.canvas = tk.Canvas(self, width=170, height=145, bg=CARD, highlightthickness=0)
-        self.canvas.pack(fill="both", expand=True)
+        self.canvas.pack(fill="both", expand=True, padx=10, pady=(0, 10))
         self.degrees: float | None = None
         self.bind("<Configure>", lambda _e: self.draw())
 
