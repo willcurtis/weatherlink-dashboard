@@ -6,7 +6,9 @@ Branded for **The Tech Shed** using its original cyan, teal, and deep-navy visua
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB) ![License](https://img.shields.io/badge/license-MIT-22C55E)
 
-![The Tech Shed WeatherLink Dashboard showing live weather cards, gauges, a wind compass, and a 24-hour temperature chart](docs/images/weatherlink-dashboard.png)
+![The Tech Shed WeatherLink Dashboard showing weather cards, gauges, a wind compass, Weather Window activity guidance, and a 24-hour temperature chart](docs/images/weatherlink-dashboard.png)
+
+*Screenshot uses synthetic demonstration observations; it contains no WeatherLink credentials or real station location.*
 
 ## Features
 
@@ -22,6 +24,31 @@ Branded for **The Tech Shed** using its original cyan, teal, and deep-navy visua
 - Credentials loaded only from a local `.env` file, which Git ignores
 - Installed version and a clickable The Tech Shed repository link in the dashboard footer
 - Packaged The Tech Shed logo, window icon, and cohesive professional brand theme
+
+## Weather Window
+
+Weather Window translates the latest station observations into practical guidance for five common outdoor activities. Each row shows a text-labelled status and the most important current concern, so the result does not depend on colour alone.
+
+![Weather Window showing caution and avoid states caused by rain](docs/images/weather-window.png)
+
+| Activity | Observations considered |
+| --- | --- |
+| Walking | Rain rate, strongest wind reading, feels-like temperature, and UV |
+| Cycling | Rain, gusts, temperature, and UV with more conservative wind limits |
+| Gardening | Rain, gusts, temperature, and UV exposure |
+| Outdoor dining | Rain, gusts, feels-like temperature, and UV |
+| Drying laundry | Rain, gusts, humidity, and solar radiation |
+
+The status is determined by the highest-severity concern detected:
+
+| Status | Meaning |
+| --- | --- |
+| **Good** | No concerns were found in the available current readings. |
+| **Caution** | At least one reading may make the activity less comfortable or practical. |
+| **Avoid** | At least one reading has crossed the activity's more conservative limit. |
+| **Waiting** | Relevant readings are unavailable or the observations are more than 30 minutes old. |
+
+Weather Window uses current local observations only. It is practical guidance rather than a forecast, and conditions can change between dashboard refreshes.
 
 ## Setup
 
@@ -159,8 +186,6 @@ ruff check .
 ```
 
 Sensor models expose slightly different WeatherLink field names. The normalizer deliberately supports common WeatherLink Live, Console, EnviroMonitor, WeatherLinkIP, and Vantage Connect variants. Contributions with sanitized sample payloads are welcome.
-
-Weather Window ratings use only the latest station observations; they are practical guidance, not a forecast. The panel shows the most important current concern for each activity, changes to an unavailable state when all relevant readings are missing, and suspends guidance when observations are more than 30 minutes old.
 
 ## License
 

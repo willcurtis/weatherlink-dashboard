@@ -10,6 +10,11 @@ All notable changes to this project will be documented here. The format follows 
 - Activity-specific rain, gust, temperature, humidity, solar, and UV rules with metric and imperial explanations.
 - Unavailable and stale-observation states so incomplete data is never presented as current guidance.
 
+### Documentation
+
+- Expanded the Weather Window guide with status and activity-input references.
+- Replaced the dashboard image and added a focused alert-state screenshot using synthetic observations.
+
 ## [0.4.0] - 2026-08-01
 
 ### Added
