@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import math
 import tkinter as tk
+from typing import ClassVar
 
 import customtkinter as ctk
 
-from .theme import BORDER, CARD, CYAN, MUTED, TEXT
+from .theme import BACKGROUND, BORDER, CARD, CAUTION, CYAN, DANGER, MUTED, SUBTLE, TEAL, TEXT
+from .weather_window import ACTIVITY_NAMES, ActivityAssessment, WindowStatus
 
 
 class MetricCard(ctk.CTkFrame):
@@ -33,6 +35,91 @@ class MetricCard(ctk.CTkFrame):
     def set(self, value: str, detail: str = "") -> None:
         self.value.configure(text=value)
         self.detail.configure(text=detail)
+
+
+class WeatherWindow(ctk.CTkFrame):
+    """Compact, accessible traffic-light guidance for outdoor activities."""
+
+    _STYLE: ClassVar[dict[WindowStatus, tuple[str, str, str]]] = {
+        WindowStatus.GOOD: ("GOOD", TEAL, BACKGROUND),
+        WindowStatus.CAUTION: ("CAUTION", CAUTION, BACKGROUND),
+        WindowStatus.AVOID: ("AVOID", DANGER, BACKGROUND),
+        WindowStatus.UNKNOWN: ("WAITING", SUBTLE, TEXT),
+    }
+
+    def __init__(self, master, **kwargs):
+        super().__init__(
+            master,
+            corner_radius=18,
+            fg_color=CARD,
+            border_width=1,
+            border_color=BORDER,
+            **kwargs,
+        )
+        self.grid_columnconfigure(0, weight=1)
+        header = ctk.CTkFrame(self, fg_color="transparent")
+        header.grid(row=0, column=0, sticky="ew", padx=16, pady=(7, 2))
+        ctk.CTkLabel(
+            header,
+            text="WEATHER WINDOW",
+            height=18,
+            text_color=MUTED,
+            font=("Arial", 10, "bold"),
+        ).pack(side="left")
+        ctk.CTkLabel(
+            header,
+            text="RIGHT NOW",
+            height=18,
+            text_color=SUBTLE,
+            font=("Arial", 9, "bold"),
+        ).pack(side="right")
+
+        self.rows: dict[str, tuple[ctk.CTkLabel, ctk.CTkLabel]] = {}
+        for index, activity in enumerate(ACTIVITY_NAMES, start=1):
+            self.grid_rowconfigure(index, weight=1, uniform="activity")
+            row = ctk.CTkFrame(self, fg_color="transparent")
+            row.grid(row=index, column=0, sticky="nsew", padx=12, pady=1)
+            row.grid_columnconfigure(2, weight=1)
+            ctk.CTkLabel(
+                row,
+                text=activity,
+                width=100,
+                height=18,
+                anchor="w",
+                text_color=TEXT,
+                font=("Arial", 10, "bold"),
+            ).grid(row=0, column=0, sticky="w", padx=(4, 4))
+            badge = ctk.CTkLabel(
+                row,
+                text="WAITING",
+                width=62,
+                height=18,
+                corner_radius=6,
+                fg_color=SUBTLE,
+                text_color=TEXT,
+                font=("Arial", 8, "bold"),
+            )
+            badge.grid(row=0, column=1, padx=(0, 8))
+            reason = ctk.CTkLabel(
+                row,
+                text="Waiting for data",
+                height=18,
+                anchor="w",
+                text_color=MUTED,
+                font=("Arial", 9),
+            )
+            reason.grid(row=0, column=2, sticky="ew")
+            self.rows[activity] = badge, reason
+
+    def set(self, assessments: tuple[ActivityAssessment, ...]) -> None:
+        for assessment in assessments:
+            row = self.rows.get(assessment.activity)
+            if row is None:
+                continue
+            badge, reason = row
+            label, color, text_color = self._STYLE[assessment.status]
+            badge.configure(text=label, fg_color=color, text_color=text_color)
+            reason.configure(text=assessment.reason)
 
 
 class Gauge(ctk.CTkFrame):

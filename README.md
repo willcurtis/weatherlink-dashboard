@@ -13,6 +13,8 @@ Branded for **The Tech Shed** using its original cyan, teal, and deep-navy visua
 - Live temperature, humidity, rainfall, solar radiation, and UV readings
 - Wind-speed and barometric-pressure gauges plus a compass dial
 - Selectable 24-hour charts for temperature, humidity, pressure, and wind
+- Weather Window guidance for walking, cycling, gardening, outdoor dining, and laundry
+- Accessible good, caution, avoid, and unavailable states based on current local observations
 - Metric and imperial display modes
 - Automatic first-station discovery or an explicit station ID
 - Background network requests so the interface remains responsive
@@ -157,6 +159,8 @@ ruff check .
 ```
 
 Sensor models expose slightly different WeatherLink field names. The normalizer deliberately supports common WeatherLink Live, Console, EnviroMonitor, WeatherLinkIP, and Vantage Connect variants. Contributions with sanitized sample payloads are welcome.
+
+Weather Window ratings use only the latest station observations; they are practical guidance, not a forecast. The panel shows the most important current concern for each activity, changes to an unavailable state when all relevant readings are missing, and suspends guidance when observations are more than 30 minutes old.
 
 ## License
 

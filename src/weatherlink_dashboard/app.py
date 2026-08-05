@@ -34,7 +34,8 @@ from .theme import (
     TEAL_HOVER,
     TEXT,
 )
-from .widgets import Compass, Gauge, MetricCard
+from .weather_window import evaluate_weather_window
+from .widgets import Compass, Gauge, MetricCard, WeatherWindow
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -251,9 +252,17 @@ class Dashboard(ctk.CTk):
         for i, widget in enumerate((self.wind_gauge, self.pressure_gauge, self.compass)):
             widget.grid(row=0, column=i, padx=6, pady=6, sticky="nsew")
 
+        lower = ctk.CTkFrame(self, fg_color="transparent")
+        lower.grid_columnconfigure(0, minsize=390)
+        lower.grid_columnconfigure(1, weight=1)
+        lower.grid_rowconfigure(0, weight=1)
+        self.weather_window = WeatherWindow(lower)
+        self.weather_window.grid(row=0, column=0, padx=(6, 6), sticky="nsew")
+
         chart_frame = ctk.CTkFrame(
-            self, corner_radius=18, fg_color=CARD, border_width=1, border_color=BORDER
+            lower, corner_radius=18, fg_color=CARD, border_width=1, border_color=BORDER
         )
+        chart_frame.grid(row=0, column=1, padx=(6, 6), sticky="nsew")
         chart_header = ctk.CTkFrame(chart_frame, fg_color="transparent")
         chart_header.pack(fill="x", padx=16, pady=(12, 0))
         ctk.CTkLabel(
@@ -298,7 +307,7 @@ class Dashboard(ctk.CTk):
         )
         copyright_label.pack(side="right")
         copyright_label.bind("<Button-1>", lambda _event: open_repository())
-        chart_frame.pack(fill="both", expand=True, padx=30, pady=(10, 12))
+        lower.pack(fill="both", expand=True, padx=24, pady=(10, 12))
 
     def refresh(self) -> None:
         if self.loading:
@@ -356,6 +365,7 @@ class Dashboard(ctk.CTk):
         self.wind_gauge.set(c.wind(self.metric))
         self.pressure_gauge.set(c.pressure(self.metric))
         self.compass.set(c.wind_direction)
+        self.weather_window.set(evaluate_weather_window(c, self.metric))
 
     def _draw_chart(self) -> None:
         choice = getattr(self, "chart_choice", None)
