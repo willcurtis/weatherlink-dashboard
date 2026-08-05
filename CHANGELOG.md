@@ -4,6 +4,12 @@ All notable changes to this project will be documented here. The format follows 
 
 ## [Unreleased]
 
+### Added
+
+- Weather Window panel with good, caution, and avoid guidance for five outdoor activities.
+- Activity-specific rain, gust, temperature, humidity, solar, and UV rules with metric and imperial explanations.
+- Unavailable and stale-observation states so incomplete data is never presented as current guidance.
+
 ## [0.4.0] - 2026-08-01
 
 ### Added
